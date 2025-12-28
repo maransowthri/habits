@@ -221,18 +221,21 @@
 /* Day Tabs */
 .day-tabs {
     display: flex;
+    flex-direction: row;
     gap: 0.5rem;
     margin-bottom: 1.5rem;
     padding: 0.5rem;
     background: #f1f5f9;
     border-radius: 1rem;
     overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    align-items: center;
 }
 
 .day-tab {
-    flex: 1;
-    min-width: 80px;
-    padding: 0.875rem 1rem;
+    flex: 0 0 auto; /* size to content, prevent stretching */
+    padding: 0.75rem 1rem;
     background: transparent;
     border: none;
     border-radius: 0.75rem;
@@ -240,10 +243,12 @@
     color: #64748b;
     cursor: pointer;
     transition: all 0.25s ease;
-    display: flex;
+    display: inline-flex;
     flex-direction: column;
     align-items: center;
     gap: 0.25rem;
+    appearance: none;
+    line-height: 1.1;
 }
 
 .day-tab:hover {
@@ -266,16 +271,9 @@
 }
 
 @media (max-width: 640px) {
-    .day-tab-short {
-        display: block;
-    }
-    .day-tab-full {
-        display: none;
-    }
-    .day-tab {
-        min-width: 50px;
-        padding: 0.75rem 0.5rem;
-    }
+    .day-tab-short { display: block; }
+    .day-tab-full { display: none; }
+    .day-tab { padding: 0.6rem 0.5rem; }
 }
 
 /* Day Contents */
@@ -379,6 +377,9 @@
     font-weight: 600;
     text-transform: capitalize;
     white-space: nowrap;
+    grid-column: 3;
+    justify-self: end;
+    align-self: center;
 }
 
 @media (max-width: 640px) {
