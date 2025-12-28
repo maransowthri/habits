@@ -570,36 +570,102 @@ function retryGeneration() {
     }
 }
 
-// Download plan as text
+// Download plan as PDF
 function downloadPlan() {
     if (!generatedHabits) return;
     
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
     const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    let text = `WEEKLY HABITS PLAN FOR ${(answers.name || 'User').toUpperCase()}\n`;
-    text += `Generated on ${new Date().toLocaleDateString()}\n`;
-    text += `${'='.repeat(50)}\n\n`;
+    const userName = answers.name || 'User';
     
+    // Colors
+    const primaryColor = [99, 102, 241]; // #6366f1
+    const textDark = [31, 41, 55];
+    const textGray = [107, 114, 128];
+    
+    let yPos = 20;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 20;
+    const contentWidth = pageWidth - (margin * 2);
+    
+    // Title
+    doc.setFontSize(24);
+    doc.setTextColor(...primaryColor);
+    doc.text('Weekly Habits Plan', pageWidth / 2, yPos, { align: 'center' });
+    
+    yPos += 12;
+    doc.setFontSize(14);
+    doc.setTextColor(...textGray);
+    doc.text(`Personalized for ${userName}`, pageWidth / 2, yPos, { align: 'center' });
+    
+    yPos += 8;
+    doc.setFontSize(10);
+    doc.text(`Generated on ${new Date().toLocaleDateString()}`, pageWidth / 2, yPos, { align: 'center' });
+    
+    yPos += 15;
+    
+    // Summary if exists
     if (generatedHabits.summary) {
-        text += `${generatedHabits.summary}\n\n`;
+        doc.setFontSize(11);
+        doc.setTextColor(...textGray);
+        const summaryLines = doc.splitTextToSize(generatedHabits.summary, contentWidth);
+        doc.text(summaryLines, margin, yPos);
+        yPos += (summaryLines.length * 6) + 10;
     }
     
+    // Days
     days.forEach(day => {
-        text += `${day.toUpperCase()}\n${'-'.repeat(20)}\n`;
         const habits = generatedHabits.days[day] || [];
+        if (habits.length === 0) return;
+        
+        // Check if we need a new page
+        if (yPos > 250) {
+            doc.addPage();
+            yPos = 20;
+        }
+        
+        // Day header
+        doc.setFillColor(...primaryColor);
+        doc.roundedRect(margin, yPos - 5, contentWidth, 10, 2, 2, 'F');
+        doc.setFontSize(12);
+        doc.setTextColor(255, 255, 255);
+        doc.text(day, margin + 5, yPos + 2);
+        yPos += 12;
+        
+        // Habits
         habits.forEach((habit, index) => {
-            text += `${index + 1}. ${habit.title}\n`;
-            text += `   Time: ${habit.time} | Duration: ${habit.duration}\n`;
+            if (yPos > 270) {
+                doc.addPage();
+                yPos = 20;
+            }
+            
+            // Habit title
+            doc.setFontSize(11);
+            doc.setTextColor(...textDark);
+            const titleLines = doc.splitTextToSize(`${index + 1}. ${habit.title}`, contentWidth - 10);
+            doc.text(titleLines, margin + 5, yPos);
+            yPos += titleLines.length * 5;
+            
+            // Time and duration
+            doc.setFontSize(9);
+            doc.setTextColor(...textGray);
+            doc.text(`${habit.time}  •  ${habit.duration}  •  ${habit.category}`, margin + 10, yPos);
+            yPos += 8;
         });
-        text += '\n';
+        
+        yPos += 5;
     });
     
-    const blob = new Blob([text], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'weekly-habits-plan.txt';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    // Footer
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(...textGray);
+        doc.text('Weekly Habits Planner - Build Better Habits', pageWidth / 2, 290, { align: 'center' });
+    }
+    
+    // Save
+    doc.save(`weekly-habits-plan-${userName.toLowerCase().replace(/\s+/g, '-')}.pdf`);
 }
