@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly Habits Planner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#6366f1',
+                        secondary: '#8b5cf6',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 font-sans">
+    <!-- Header -->
+    <header class="py-6 px-4">
+        <div class="max-w-4xl mx-auto flex items-center justify-center gap-3">
+            <svg class="w-10 h-10 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+            </svg>
+            <h1 class="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                Weekly Habits Planner
+            </h1>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 pb-12">
+        <!-- Welcome Screen -->
+        <section id="welcome-screen" class="screen active">
+            <div class="text-center py-12">
+                <div class="w-24 h-24 mx-auto mb-8 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center">
+                    <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                </div>
+                <h2 class="text-4xl font-bold text-gray-800 mb-4">Build Better Habits</h2>
+                <p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+                    Answer a few questions about yourself, and we'll create a personalized weekly habit plan tailored just for you.
+                </p>
+                <button onclick="startQuestionnaire()" class="btn-primary text-lg px-8 py-4">
+                    Get Started
+                    <svg class="w-5 h-5 ml-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                    </svg>
+                </button>
+            </div>
+        </section>
+
+        <!-- Questionnaire Screen -->
+        <section id="questionnaire-screen" class="screen">
+            <div class="bg-white rounded-2xl shadow-xl p-8 md:p-12">
+                <!-- Progress Bar -->
+                <div class="mb-8">
+                    <div class="flex justify-between text-sm text-gray-500 mb-2">
+                        <span>Question <span id="current-question">1</span> of <span id="total-questions">6</span></span>
+                        <span id="progress-percent">0%</span>
+                    </div>
+                    <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div id="progress-bar" class="h-full bg-gradient-to-r from-primary to-secondary transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Question Container -->
+                <div id="question-container">
+                    <!-- Questions will be dynamically inserted here -->
+                </div>
+
+                <!-- Navigation Buttons -->
+                <div class="flex justify-between mt-8">
+                    <button id="prev-btn" onclick="prevQuestion()" class="btn-secondary opacity-50 cursor-not-allowed" disabled>
+                        <svg class="w-5 h-5 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12"></path>
+                        </svg>
+                        Previous
+                    </button>
+                    <button id="next-btn" onclick="nextQuestion()" class="btn-primary">
+                        Next
+                        <svg class="w-5 h-5 ml-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Loading Screen -->
+        <section id="loading-screen" class="screen">
+            <div class="text-center py-16">
+                <div class="loading-spinner mx-auto mb-8"></div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Creating Your Personalized Plan</h2>
+                <p class="text-gray-600">Our AI is crafting the perfect habits for your lifestyle...</p>
+            </div>
+        </section>
+
+
+        <!-- Results Screen -->
+        <section id="results-screen" class="screen">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">Your Weekly Habits Plan</h2>
+                <p class="text-gray-600">Here's your personalized routine for building better habits</p>
+            </div>
+
+            <!-- Weekly Grid -->
+            <div id="habits-grid" class="grid grid-cols-1 md:grid-cols-7 gap-4 mb-8">
+                <!-- Days will be dynamically inserted here -->
+            </div>
+
+            <!-- Actions -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button onclick="regenerateHabits()" class="btn-secondary">
+                    <svg class="w-5 h-5 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    Regenerate Plan
+                </button>
+                <button onclick="startOver()" class="btn-secondary">
+                    <svg class="w-5 h-5 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414 6.414a2 2 0 001.414.586H19a2 2 0 002-2V7a2 2 0 00-2-2h-8.172a2 2 0 00-1.414.586L3 12z"></path>
+                    </svg>
+                    Start Over
+                </button>
+                <button onclick="downloadPlan()" class="btn-primary">
+                    <svg class="w-5 h-5 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                    Download Plan
+                </button>
+            </div>
+        </section>
+
+        <!-- Error Screen -->
+        <section id="error-screen" class="screen">
+            <div class="text-center py-12">
+                <div class="w-20 h-20 mx-auto mb-6 bg-red-100 rounded-full flex items-center justify-center">
+                    <svg class="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Oops! Something went wrong</h2>
+                <p id="error-message" class="text-gray-600 mb-8">We couldn't generate your habits plan. Please try again.</p>
+                <button onclick="retryGeneration()" class="btn-primary">
+                    Try Again
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-6 text-center text-gray-500 text-sm">
+        <p>Built with ❤️ for better habits</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
