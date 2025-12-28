@@ -52,15 +52,22 @@ const questions = [
         type: 'multiple',
         question: 'What activities interest you?',
         options: [
-            { value: 'exercise', label: '🏃 Exercise & Sports' },
-            { value: 'reading', label: '📚 Reading' },
+            { value: 'physical_activity', label: '🏃 Physical Activity & Exercise' },
             { value: 'meditation', label: '🧘 Meditation & Mindfulness' },
-            { value: 'cooking', label: '🍳 Cooking & Nutrition' },
-            { value: 'music', label: '🎵 Music' },
-            { value: 'art', label: '🎨 Art & Crafts' },
-            { value: 'nature', label: '🌿 Nature & Outdoors' },
-            { value: 'tech', label: '💻 Technology' }
+            { value: 'speaking_skills', label: '🎤 Improve Speaking Skills' },
+            { value: 'side_hustle', label: '💼 Side Hustle & Entrepreneurship' },
+            { value: 'nutrition', label: '🥗 Nutritional Food & Healthy Eating' },
+            { value: 'expense_tracking', label: '💰 Tracking Expenses & Budgeting' },
+            { value: 'reading', label: '📚 Reading Books' },
+            { value: 'journaling', label: '✍️ Journaling & Reflection' }
         ]
+    },
+    {
+        id: 'custom_interests',
+        type: 'text',
+        question: 'Anything else you want to explore or learn?',
+        placeholder: 'E.g., learning guitar, photography, public speaking, coding...',
+        required: false
     },
     {
         id: 'time_availability',
@@ -100,9 +107,64 @@ let currentQuestionIndex = 0;
 let answers = {};
 let generatedHabits = null;
 
+// LocalStorage keys
+const STORAGE_KEYS = {
+    answers: 'habits_planner_answers',
+    habits: 'habits_planner_habits'
+};
+
+// Load data from localStorage
+function loadFromStorage() {
+    try {
+        const savedAnswers = localStorage.getItem(STORAGE_KEYS.answers);
+        const savedHabits = localStorage.getItem(STORAGE_KEYS.habits);
+        
+        if (savedAnswers) {
+            answers = JSON.parse(savedAnswers);
+        }
+        if (savedHabits) {
+            generatedHabits = JSON.parse(savedHabits);
+        }
+    } catch (e) {
+        console.error('Error loading from localStorage:', e);
+    }
+}
+
+// Save answers to localStorage
+function saveAnswers() {
+    try {
+        localStorage.setItem(STORAGE_KEYS.answers, JSON.stringify(answers));
+    } catch (e) {
+        console.error('Error saving answers:', e);
+    }
+}
+
+// Save habits to localStorage
+function saveHabits() {
+    try {
+        localStorage.setItem(STORAGE_KEYS.habits, JSON.stringify(generatedHabits));
+    } catch (e) {
+        console.error('Error saving habits:', e);
+    }
+}
+
+// Clear all saved data
+function clearStorage() {
+    localStorage.removeItem(STORAGE_KEYS.answers);
+    localStorage.removeItem(STORAGE_KEYS.habits);
+}
+
 // Initialize the app
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('total-questions').textContent = questions.length;
+    
+    // Load saved data
+    loadFromStorage();
+    
+    // If we have saved habits, show results directly
+    if (generatedHabits && generatedHabits.days) {
+        renderResults();
+    }
 });
 
 // Screen management
@@ -192,6 +254,7 @@ function handleTextKeypress(event) {
         const value = event.target.value.trim();
         if (value) {
             answers[questions[currentQuestionIndex].id] = value;
+            saveAnswers();
             nextQuestion();
         }
     }
@@ -200,6 +263,7 @@ function handleTextKeypress(event) {
 // Select single option
 function selectSingleOption(questionId, value, element) {
     answers[questionId] = value;
+    saveAnswers();
     document.querySelectorAll('.option-card').forEach(card => {
         card.classList.remove('selected');
     });
@@ -223,6 +287,7 @@ function toggleMultipleOption(questionId, value, element) {
         answers[questionId].push(value);
         element.classList.add('selected');
     }
+    saveAnswers();
 }
 
 // Navigation
@@ -234,6 +299,7 @@ function nextQuestion() {
         const input = document.getElementById('answer-input');
         if (input) {
             answers[question.id] = input.value.trim();
+            saveAnswers();
         }
         if (question.required && !answers[question.id]) {
             input.classList.add('border-red-500');
@@ -330,6 +396,7 @@ async function generateHabits() {
         }
         
         generatedHabits = await response.json();
+        saveHabits();
         renderResults();
         
     } catch (error) {
@@ -346,16 +413,22 @@ function buildPrompt() {
     const occupation = answers.occupation || 'employed';
     const goals = (answers.goals || []).join(', ');
     const interests = (answers.interests || []).join(', ');
+    const customInterests = answers.custom_interests || '';
     const timeAvailability = answers.time_availability || '30-60';
     const wakeTime = answers.wake_time || 'normal';
     const challengeLevel = answers.challenge_level || 'moderate';
+    
+    let interestsText = interests;
+    if (customInterests) {
+        interestsText += interestsText ? `, ${customInterests}` : customInterests;
+    }
     
     return `Create a personalized weekly habit plan for ${name} with the following profile:
     
 - Age group: ${ageGroup}
 - Occupation: ${occupation}
 - Main goals: ${goals}
-- Interests: ${interests}
+- Interests: ${interestsText}
 - Daily time available: ${timeAvailability} minutes
 - Wake up time: ${wakeTime}
 - Desired challenge level: ${challengeLevel}
@@ -376,17 +449,18 @@ Make habits specific and actionable (e.g., "10-minute morning stretch" instead o
 function renderResults() {
     showScreen('results-screen');
     
-    const grid = document.getElementById('habits-grid');
+    const container = document.getElementById('habits-grid');
     const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const shortDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     
     const categoryColors = {
-        health: 'bg-green-500',
-        mental: 'bg-blue-500',
-        productivity: 'bg-orange-500',
-        learning: 'bg-purple-500',
-        relationships: 'bg-pink-500',
-        creativity: 'bg-yellow-500',
-        finance: 'bg-emerald-500'
+        health: '#22c55e',
+        mental: '#3b82f6',
+        productivity: '#f97316',
+        learning: '#a855f7',
+        relationships: '#ec4899',
+        creativity: '#eab308',
+        finance: '#10b981'
     };
     
     const categoryIcons = {
@@ -398,40 +472,79 @@ function renderResults() {
         creativity: '🎨',
         finance: '💰'
     };
-    
-    let html = '';
-    
-    days.forEach(day => {
+
+    // Build tabs
+    let tabsHtml = '<div class="day-tabs">';
+    days.forEach((day, index) => {
+        tabsHtml += `
+            <button class="day-tab ${index === 0 ? 'active' : ''}" data-day="${day}">
+                <span class="day-tab-short">${shortDays[index]}</span>
+                <span class="day-tab-full">${day}</span>
+            </button>
+        `;
+    });
+    tabsHtml += '</div>';
+
+    // Build content for each day
+    let contentHtml = '<div class="day-contents">';
+    days.forEach((day, index) => {
         const habits = generatedHabits.days[day] || [];
         
-        html += `
-            <div class="day-card">
-                <div class="day-card-header">${day}</div>
-                <div class="day-card-body">
-        `;
+        contentHtml += `<div class="day-content ${index === 0 ? 'active' : ''}" data-day="${day}">`;
+        contentHtml += `<div class="habits-list">`;
         
-        habits.forEach(habit => {
-            const colorClass = categoryColors[habit.category] || 'bg-gray-500';
+        habits.forEach((habit, habitIndex) => {
+            const color = categoryColors[habit.category] || '#6b7280';
             const icon = categoryIcons[habit.category] || '✨';
             
-            html += `
-                <div class="habit-item">
-                    <div class="habit-icon ${colorClass}">${icon}</div>
-                    <div class="habit-content">
-                        <div class="habit-title">${habit.title}</div>
-                        <div class="habit-time">${habit.time} • ${habit.duration}</div>
+            contentHtml += `
+                <div class="habit-card" style="--accent-color: ${color}; animation-delay: ${habitIndex * 0.1}s">
+                    <div class="habit-card-icon" style="background: ${color}">${icon}</div>
+                    <div class="habit-card-content">
+                        <h4 class="habit-card-title">${habit.title}</h4>
+                        <div class="habit-card-meta">
+                            <span class="habit-card-time">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                                ${habit.time}
+                            </span>
+                            <span class="habit-card-duration">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M5 22h14M5 2h14M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"></path>
+                                </svg>
+                                ${habit.duration}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="habit-card-category" style="background: ${color}20; color: ${color}">
+                        ${habit.category}
                     </div>
                 </div>
             `;
         });
         
-        html += `
-                </div>
-            </div>
-        `;
+        contentHtml += `</div></div>`;
     });
-    
-    grid.innerHTML = html;
+    contentHtml += '</div>';
+
+    container.innerHTML = tabsHtml + contentHtml;
+
+    // Add tab click handlers
+    container.querySelectorAll('.day-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            const day = tab.dataset.day;
+            
+            // Update active tab
+            container.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            
+            // Update active content
+            container.querySelectorAll('.day-content').forEach(c => c.classList.remove('active'));
+            container.querySelector(`.day-content[data-day="${day}"]`).classList.add('active');
+        });
+    });
 }
 
 // Regenerate habits
@@ -444,6 +557,7 @@ function startOver() {
     currentQuestionIndex = 0;
     answers = {};
     generatedHabits = null;
+    clearStorage();
     showScreen('welcome-screen');
 }
 

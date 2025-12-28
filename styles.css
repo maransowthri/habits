@@ -218,70 +218,190 @@
     color: #4338ca;
 }
 
-/* Day Card */
-.day-card {
-    background: white;
+/* Day Tabs */
+.day-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    padding: 0.5rem;
+    background: #f1f5f9;
     border-radius: 1rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    transition: all 0.3s ease;
+    overflow-x: auto;
 }
 
-.day-card:hover {
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    transform: translateY(-4px);
-}
-
-.day-card-header {
-    padding: 0.75rem 1rem;
-    background: linear-gradient(to right, #6366f1, #8b5cf6);
-    color: white;
+.day-tab {
+    flex: 1;
+    min-width: 80px;
+    padding: 0.875rem 1rem;
+    background: transparent;
+    border: none;
+    border-radius: 0.75rem;
     font-weight: 600;
-    text-align: center;
-}
-
-.day-card-body {
-    padding: 1rem;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.25s ease;
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    align-items: center;
+    gap: 0.25rem;
 }
 
-.habit-item {
+.day-tab:hover {
+    background: white;
+    color: #6366f1;
+}
+
+.day-tab.active {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+.day-tab-short {
+    display: none;
+}
+
+.day-tab-full {
+    display: block;
+}
+
+@media (max-width: 640px) {
+    .day-tab-short {
+        display: block;
+    }
+    .day-tab-full {
+        display: none;
+    }
+    .day-tab {
+        min-width: 50px;
+        padding: 0.75rem 0.5rem;
+    }
+}
+
+/* Day Contents */
+.day-contents {
+    min-height: 400px;
+}
+
+.day-content {
+    display: none;
+    animation: fadeSlideIn 0.4s ease;
+}
+
+.day-content.active {
+    display: block;
+}
+
+@keyframes fadeSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Habits List */
+.habits-list {
     display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-    padding: 0.75rem;
-    background: #f9fafb;
-    border-radius: 0.5rem;
+    flex-direction: column;
+    gap: 1rem;
 }
 
-.habit-icon {
-    width: 2rem;
-    height: 2rem;
-    border-radius: 50%;
-    flex-shrink: 0;
+/* Habit Card - New Design */
+.habit-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    border-left: 4px solid var(--accent-color, #6366f1);
+    transition: all 0.3s ease;
+    animation: habitSlideIn 0.5s ease backwards;
+}
+
+@keyframes habitSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.habit-card:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.habit-card-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.75rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
-    font-size: 0.875rem;
+    font-size: 1.25rem;
+    flex-shrink: 0;
 }
 
-.habit-content {
+.habit-card-content {
     flex: 1;
+    min-width: 0;
 }
 
-.habit-title {
-    font-weight: 500;
+.habit-card-title {
+    font-size: 1.0625rem;
+    font-weight: 600;
     color: #1f2937;
-    font-size: 0.875rem;
+    margin: 0 0 0.5rem 0;
+    line-height: 1.4;
 }
 
-.habit-time {
-    font-size: 0.75rem;
+.habit-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.habit-card-time,
+.habit-card-duration {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.875rem;
     color: #6b7280;
-    margin-top: 0.25rem;
+}
+
+.habit-card-time svg,
+.habit-card-duration svg {
+    opacity: 0.7;
+}
+
+.habit-card-category {
+    padding: 0.375rem 0.75rem;
+    border-radius: 2rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: capitalize;
+    flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+    .habit-card {
+        flex-wrap: wrap;
+        padding: 1rem;
+    }
+    
+    .habit-card-category {
+        margin-left: auto;
+    }
 }
 
 /* Mobile Responsiveness */
