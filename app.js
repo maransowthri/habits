@@ -106,11 +106,13 @@ const questions = [
 let currentQuestionIndex = 0;
 let answers = {};
 let generatedHabits = null;
+let habitStatus = {};
 
 // LocalStorage keys
 const STORAGE_KEYS = {
     answers: 'habits_planner_answers',
-    habits: 'habits_planner_habits'
+    habits: 'habits_planner_habits',
+    status: 'habits_planner_status'
 };
 
 // Load data from localStorage
@@ -118,12 +120,16 @@ function loadFromStorage() {
     try {
         const savedAnswers = localStorage.getItem(STORAGE_KEYS.answers);
         const savedHabits = localStorage.getItem(STORAGE_KEYS.habits);
+        const savedStatus = localStorage.getItem(STORAGE_KEYS.status);
         
         if (savedAnswers) {
             answers = JSON.parse(savedAnswers);
         }
         if (savedHabits) {
             generatedHabits = JSON.parse(savedHabits);
+        }
+        if (savedStatus) {
+            habitStatus = JSON.parse(savedStatus);
         }
     } catch (e) {
         console.error('Error loading from localStorage:', e);
@@ -148,10 +154,20 @@ function saveHabits() {
     }
 }
 
+// Save habit completion status
+function saveHabitStatus() {
+    try {
+        localStorage.setItem(STORAGE_KEYS.status, JSON.stringify(habitStatus));
+    } catch (e) {
+        console.error('Error saving habit status:', e);
+    }
+}
+
 // Clear all saved data
 function clearStorage() {
     localStorage.removeItem(STORAGE_KEYS.answers);
     localStorage.removeItem(STORAGE_KEYS.habits);
+    localStorage.removeItem(STORAGE_KEYS.status);
 }
 
 // Initialize the app
@@ -397,6 +413,8 @@ async function generateHabits() {
         
         generatedHabits = await response.json();
         saveHabits();
+        habitStatus = {};
+        saveHabitStatus();
         renderResults();
         
     } catch (error) {
@@ -496,9 +514,12 @@ function renderResults() {
         habits.forEach((habit, habitIndex) => {
             const color = categoryColors[habit.category] || '#6b7280';
             const icon = categoryIcons[habit.category] || '✨';
+            const key = `${day}-${habitIndex}`;
+            const completed = !!habitStatus[key];
             
             contentHtml += `
-                <div class="habit-card" style="--accent-color: ${color}; animation-delay: ${habitIndex * 0.1}s">
+                <div class="habit-card ${completed ? 'completed' : ''}" style="--accent-color: ${color}; animation-delay: ${habitIndex * 0.1}s">
+                    <input type="checkbox" class="habit-checkbox" data-key="${key}" ${completed ? 'checked' : ''} aria-label="Complete">
                     <div class="habit-card-icon" style="background: ${color}">${icon}</div>
                     <div class="habit-card-content">
                         <h4 class="habit-card-title">${habit.title}</h4>
@@ -543,6 +564,17 @@ function renderResults() {
             // Update active content
             container.querySelectorAll('.day-content').forEach(c => c.classList.remove('active'));
             container.querySelector(`.day-content[data-day="${day}"]`).classList.add('active');
+        });
+    });
+
+    // Checkbox handlers
+    container.querySelectorAll('.habit-checkbox').forEach(cb => {
+        cb.addEventListener('change', (e) => {
+            const key = e.target.dataset.key;
+            habitStatus[key] = e.target.checked;
+            saveHabitStatus();
+            const card = e.target.closest('.habit-card');
+            if (card) card.classList.toggle('completed', e.target.checked);
         });
     });
 }

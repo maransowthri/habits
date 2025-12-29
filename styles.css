@@ -309,7 +309,7 @@
 /* Habit Card - Clean Design */
 .habit-card {
     display: grid;
-    grid-template-columns: 48px 1fr auto;
+    grid-template-columns: 20px 48px 1fr auto; /* checkbox, icon, content, category */
     align-items: center;
     gap: 16px;
     padding: 20px 24px;
@@ -333,6 +333,15 @@
     display: grid;
     place-items: center;
     font-size: 20px;
+}
+
+/* Checkbox */
+.habit-checkbox {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent-color, #6366f1);
+    justify-self: center;
+    align-self: center;
 }
 
 .habit-card-content {
@@ -377,29 +386,38 @@
     font-weight: 600;
     text-transform: capitalize;
     white-space: nowrap;
-    grid-column: 3;
+    grid-column: 4;
     justify-self: end;
     align-self: center;
 }
 
+/* Completed state */
+.habit-card.completed .habit-card-title {
+    text-decoration: line-through;
+    color: #9ca3af;
+}
+.habit-card.completed .habit-card-icon {
+    filter: grayscale(0.2) brightness(0.95);
+}
+.habit-card.completed {
+    opacity: 0.88;
+}
+
 @media (max-width: 640px) {
     .habit-card {
-        grid-template-columns: 40px 1fr;
+        grid-template-columns: 18px 40px 1fr; /* checkbox, icon, content */
         grid-template-rows: auto auto;
         padding: 16px;
     }
-    
     .habit-card-icon {
         width: 40px;
         height: 40px;
         grid-row: 1;
     }
-    
     .habit-card-content {
-        grid-column: 2;
+        grid-column: 3;
         grid-row: 1;
     }
-    
     .habit-card-category {
         grid-column: 1 / -1;
         grid-row: 2;
