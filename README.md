@@ -1,4 +1,6 @@
-# Weekly Habits Planner
+# Build My Habits
+
+🔗 **Live at: [buildmyhabits.xyz](https://buildmyhabits.xyz)**
 
 A personalized weekly habits planner that uses AI to create custom habit recommendations based on your goals, interests, and lifestyle.
 

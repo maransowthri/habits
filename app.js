@@ -670,6 +670,19 @@ function renderResults() {
             if (card) card.classList.toggle('completed', e.target.checked);
         });
     });
+
+    // Make entire card toggle the checkbox
+    container.querySelectorAll('.habit-card').forEach(card => {
+        card.addEventListener('click', (e) => {
+            // Don't double-toggle when the checkbox itself is clicked
+            if (e.target.closest('.habit-checkbox')) return;
+            const cb = card.querySelector('.habit-checkbox');
+            if (!cb) return;
+            cb.checked = !cb.checked;
+            // Fire change handler to persist and update UI
+            cb.dispatchEvent(new Event('change'));
+        });
+    });
 }
 
 // Regenerate habits
