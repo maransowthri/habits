@@ -49,18 +49,10 @@ const questions = [
     },
     {
         id: 'interests',
-        type: 'multiple',
-        question: 'What activities interest you?',
-        options: [
-            { value: 'physical_activity', label: '🏃 Physical Activity & Exercise' },
-            { value: 'meditation', label: '🧘 Meditation & Mindfulness' },
-            { value: 'speaking_skills', label: '🎤 Improve Speaking Skills' },
-            { value: 'side_hustle', label: '💼 Side Hustle & Entrepreneurship' },
-            { value: 'nutrition', label: '🥗 Nutritional Food & Healthy Eating' },
-            { value: 'expense_tracking', label: '💰 Tracking Expenses & Budgeting' },
-            { value: 'reading', label: '📚 Reading Books' },
-            { value: 'journaling', label: '✍️ Journaling & Reflection' }
-        ]
+        type: 'dynamic_multiple',
+        question: 'Based on your goals, here are some activities that might help you. Select the ones that interest you:',
+        options: [], // Will be populated by AI based on goals
+        dependsOn: 'goals'
     },
     {
         id: 'custom_interests',
@@ -170,6 +162,38 @@ function clearStorage() {
     localStorage.removeItem(STORAGE_KEYS.status);
 }
 
+// Fetch AI-generated activities based on goals
+async function fetchActivitiesForGoals(goals) {
+    try {
+        const response = await fetch('/.netlify/functions/generate-activities', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ goals })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to generate activities');
+        }
+        
+        const data = await response.json();
+        return data.activities;
+    } catch (error) {
+        console.error('Error fetching activities:', error);
+        // Return fallback activities if AI fails
+        return [
+            { value: 'morning_routine', label: '🌅 Morning Routine & Planning' },
+            { value: 'exercise', label: '🏃 Physical Exercise' },
+            { value: 'meditation', label: '🧘 Meditation & Mindfulness' },
+            { value: 'reading', label: '📚 Reading & Learning' },
+            { value: 'journaling', label: '✍️ Journaling & Reflection' },
+            { value: 'skill_practice', label: '🎯 Skill Practice' },
+            { value: 'networking', label: '🤝 Networking & Relationships' },
+            { value: 'finance_review', label: '💰 Financial Review' }
+        ];
+    }
+}
+
 // Initialize the app
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('total-questions').textContent = questions.length;
@@ -195,6 +219,12 @@ function showScreen(screenId) {
 function startQuestionnaire() {
     currentQuestionIndex = 0;
     answers = {};
+    // Reset dynamic question options
+    questions.forEach(q => {
+        if (q.type === 'dynamic_multiple') {
+            q.options = [];
+        }
+    });
     showScreen('questionnaire-screen');
     renderQuestion();
 }
@@ -251,6 +281,41 @@ function renderQuestion() {
             });
             html += `</div>`;
             break;
+            
+        case 'dynamic_multiple':
+            // Show loading state first, then load options
+            if (question.options.length === 0) {
+                html += `
+                    <div id="dynamic-loading" class="text-center py-8">
+                        <div class="loading-spinner mx-auto mb-4"></div>
+                        <p class="text-gray-600">Generating personalized activities based on your goals...</p>
+                    </div>
+                `;
+                container.innerHTML = html;
+                updateProgress();
+                updateNavigationButtons();
+                // Fetch activities and re-render
+                loadDynamicOptions(question);
+                return;
+            }
+            html += `<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">`;
+            const dynamicSelectedValues = answers[question.id] || [];
+            question.options.forEach(option => {
+                const isSelected = dynamicSelectedValues.includes(option.value);
+                html += `
+                    <div class="checkbox-option ${isSelected ? 'selected' : ''}" 
+                         onclick="toggleMultipleOption('${question.id}', '${option.value}', this)">
+                        <div class="checkbox">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+                        <span class="text-lg">${option.label}</span>
+                    </div>
+                `;
+            });
+            html += `</div>`;
+            break;
     }
     
     container.innerHTML = html;
@@ -262,6 +327,23 @@ function renderQuestion() {
     if (textInput) {
         textInput.focus();
     }
+}
+
+// Load dynamic options from AI
+async function loadDynamicOptions(question) {
+    const dependsOnValue = answers[question.dependsOn];
+    if (!dependsOnValue || dependsOnValue.length === 0) {
+        // Use fallback if no goals selected
+        question.options = [
+            { value: 'morning_routine', label: '🌅 Morning Routine & Planning' },
+            { value: 'exercise', label: '🏃 Physical Exercise' },
+            { value: 'meditation', label: '🧘 Meditation & Mindfulness' },
+            { value: 'reading', label: '📚 Reading & Learning' }
+        ];
+    } else {
+        question.options = await fetchActivitiesForGoals(dependsOnValue);
+    }
+    renderQuestion();
 }
 
 // Handle text input keypress
@@ -333,6 +415,11 @@ function nextQuestion() {
         return;
     }
     
+    // Validate dynamic multiple selection
+    if (question.type === 'dynamic_multiple' && (!answers[question.id] || answers[question.id].length === 0)) {
+        return;
+    }
+    
     if (currentQuestionIndex < questions.length - 1) {
         currentQuestionIndex++;
         renderQuestion();
@@ -343,6 +430,12 @@ function nextQuestion() {
 
 function prevQuestion() {
     if (currentQuestionIndex > 0) {
+        // Check if we're going back from a dynamic question - reset its options
+        const currentQuestion = questions[currentQuestionIndex];
+        if (currentQuestion.type === 'dynamic_multiple') {
+            currentQuestion.options = [];
+            answers[currentQuestion.id] = []; // Clear selections too
+        }
         currentQuestionIndex--;
         renderQuestion();
     }
