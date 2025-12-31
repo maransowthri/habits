@@ -309,7 +309,7 @@
 /* Habit Card - Clean Design */
 .habit-card {
     display: grid;
-    grid-template-columns: 20px 48px 1fr auto; /* checkbox, icon, content, category */
+    grid-template-columns: 24px 48px 1fr auto; /* checkbox, icon, content, category */
     align-items: center;
     gap: 16px;
     padding: 20px 24px;
@@ -337,11 +337,36 @@
 
 /* Checkbox */
 .habit-checkbox {
-    width: 18px;
-    height: 18px;
-    accent-color: var(--accent-color, #6366f1);
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #c7d2fe; /* indigo-200 */
+    border-radius: 6px;
+    background: #fff;
+    display: inline-block;
     justify-self: center;
     align-self: center;
+    cursor: pointer;
+    transition: box-shadow 0.2s ease, transform 0.06s ease, background 0.2s ease, border-color 0.2s ease;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 12px 12px;
+}
+.habit-checkbox:hover {
+    box-shadow: 0 0 0 4px rgba(99,102,241,0.12);
+}
+.habit-checkbox:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(99,102,241,0.2);
+}
+.habit-checkbox:active {
+    transform: scale(0.96);
+}
+.habit-checkbox:checked {
+    border-color: transparent;
+    background-color: var(--accent-color, #6366f1);
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><path fill='white' d='M6.173 12.066L2.5 8.393l1.414-1.414 2.259 2.259 5.914-5.914 1.414 1.414z'/></svg>");
 }
 
 .habit-card-content {
@@ -405,7 +430,7 @@
 
 @media (max-width: 640px) {
     .habit-card {
-        grid-template-columns: 18px 40px 1fr; /* checkbox, icon, content */
+        grid-template-columns: 22px 40px 1fr; /* checkbox, icon, content */
         grid-template-rows: auto auto;
         padding: 16px;
     }
